@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "name": "Sample",
+  "provider": "cmake",
+  "source_dir": ".",
+  "preset": "macos-clang-development",
+  "target": "Sample",
+  "run": {
+    "cwd": ".",
+    "args": []
+  },
+  "engine": {
+    "version": "0.1.0",
+    "components": [
+      "FoundationBase"
+    ],
+    "features": []
+  },
+  "template": {
+    "id": "minimal",
+    "version": 4
+  }
+}

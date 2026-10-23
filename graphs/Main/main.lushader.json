@@ -1,0 +1,224 @@
+{
+  "budgets": {
+    "artifacts": 64,
+    "configurations": 8,
+    "pipelines": 16,
+    "programs": 16
+  },
+  "id": "RendererStaticBuild",
+  "profiles": [
+    "metal",
+    "wgsl"
+  ],
+  "programs": [
+    {
+      "bindings": [],
+      "function": "VSMain",
+      "id": "Geometry",
+      "input": "RendererStatic",
+      "output": "RasterVarying",
+      "source": "main_shaders/geometry.slang",
+      "stage": "vertex"
+    },
+    {
+      "bindings": [],
+      "function": "PSMain",
+      "id": "Color",
+      "input": "RasterVarying",
+      "output": "Color",
+      "source": "main_shaders/color.slang",
+      "stage": "fragment"
+    },
+    {
+      "bindings": [],
+      "function": "DepthMain",
+      "id": "Depth",
+      "input": "RasterVarying",
+      "output": "Depth",
+      "source": "main_shaders/depth.slang",
+      "stage": "fragment"
+    },
+    {
+      "bindings": [],
+      "function": "SceneShaderMain",
+      "id": "Shader_raytracingpipeline_shader",
+      "input": "RayLaunch",
+      "output": "Radiance",
+      "source": "shader_Scene_Shader_raytracingpipeline_shader.slang",
+      "stage": "ray_generation"
+    },
+    {
+      "bindings": [],
+      "function": "SceneShaderMain",
+      "id": "Shader_raytracingpipeline_closest_hit",
+      "input": "SurfaceHit",
+      "output": "ScenePayload",
+      "source": "shader_Shader_raytracingpipeline_closest_hit.slang",
+      "stage": "closest_hit"
+    },
+    {
+      "bindings": [],
+      "function": "SceneShaderMain",
+      "id": "Shader_raytracingpipeline_miss",
+      "input": "Ray",
+      "output": "ScenePayload",
+      "source": "shader_Scene_Shader_raytracingpipeline_miss.slang",
+      "stage": "miss"
+    },
+    {
+      "bindings": [],
+      "function": "ShaderMain",
+      "id": "Shader_graphicspipeline_gbuffer",
+      "input": "RasterVarying",
+      "output": "Color",
+      "source": "shader_Shader_graphicspipeline_gbuffer.slang",
+      "stage": "fragment"
+    }
+  ],
+  "schemas": [
+    {
+      "fields": [
+        {
+          "id": "PositionMesh",
+          "location": 0,
+          "semantic": "POSITION",
+          "type": "Float3"
+        },
+        {
+          "id": "MeshToClipRow0",
+          "location": 1,
+          "semantic": "TEXCOORD0",
+          "type": "Float4"
+        },
+        {
+          "id": "MeshToClipRow1",
+          "location": 2,
+          "semantic": "TEXCOORD1",
+          "type": "Float4"
+        },
+        {
+          "id": "MeshToClipRow2",
+          "location": 3,
+          "semantic": "TEXCOORD2",
+          "type": "Float4"
+        },
+        {
+          "id": "MeshToClipRow3",
+          "location": 4,
+          "semantic": "TEXCOORD3",
+          "type": "Float4"
+        },
+        {
+          "id": "Color",
+          "location": 5,
+          "semantic": "COLOR0",
+          "type": "Float4"
+        }
+      ],
+      "id": "RendererStatic",
+      "role": "Vertex"
+    },
+    {
+      "fields": [
+        {
+          "id": "PositionClip",
+          "location": 0,
+          "semantic": "SV_Position",
+          "type": "Float4"
+        },
+        {
+          "id": "Color",
+          "location": 0,
+          "semantic": "COLOR0",
+          "type": "Float4"
+        }
+      ],
+      "id": "RasterVarying",
+      "role": "Varying"
+    }
+  ],
+  "techniques": [
+    {
+      "configuration": "ColorAndDepth",
+      "fragment": "Color",
+      "id": "DefaultStaticOpaque.ColorAndDepth",
+      "recipes": [
+        {
+          "blend": "Opaque",
+          "color": "RGBA8Unorm",
+          "cull": "None",
+          "depth": "Depth32Float",
+          "depth_compare": "Less",
+          "depth_write": true,
+          "front": "CounterClockwise",
+          "id": "Default",
+          "samples": 1,
+          "topology": "TriangleList"
+        }
+      ],
+      "vertex": "Geometry"
+    },
+    {
+      "configuration": "DepthOnly",
+      "fragment": "Depth",
+      "id": "DefaultStaticOpaque.DepthOnly",
+      "recipes": [
+        {
+          "blend": "Opaque",
+          "color": "None",
+          "cull": "None",
+          "depth": "Depth32Float",
+          "depth_compare": "Less",
+          "depth_write": true,
+          "front": "CounterClockwise",
+          "id": "Default",
+          "samples": 1,
+          "topology": "TriangleList"
+        }
+      ],
+      "vertex": "Geometry"
+    },
+    {
+      "closest_hit": "Shader_raytracingpipeline_closest_hit",
+      "configuration": "RayTracing",
+      "id": "RendererTriangles.RayTracing",
+      "miss": "Shader_raytracingpipeline_miss",
+      "ray_generation": "Shader_raytracingpipeline_shader",
+      "recipes": [
+        {
+          "attribute_bytes": 8,
+          "id": "Triangles",
+          "max_recursion": 1,
+          "payload_bytes": 0
+        }
+      ],
+      "scene_interface": {
+        "payload": "scene_payload.slang",
+        "surface_queries": 2,
+        "version": 1,
+        "visibility_queries": 1
+      }
+    },
+    {
+      "configuration": "ColorAndDepth",
+      "fragment": "Shader_graphicspipeline_gbuffer",
+      "id": "DefaultStaticOpaque.ColorAndDepth.Geometry.Shader_graphicspipeline_gbuffer",
+      "recipes": [
+        {
+          "blend": "Opaque",
+          "color": "RGBA8Unorm",
+          "cull": "None",
+          "depth": "Depth32Float",
+          "depth_compare": "Less",
+          "depth_write": true,
+          "front": "CounterClockwise",
+          "id": "Pipeline",
+          "samples": 1,
+          "topology": "TriangleList"
+        }
+      ],
+      "vertex": "Geometry"
+    }
+  ],
+  "version": 1
+}

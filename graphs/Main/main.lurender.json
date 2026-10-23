@@ -1,0 +1,127 @@
+{
+  "configurations": [
+    {
+      "edges": [
+        {
+          "from": "color.texture",
+          "to": "camera.target"
+        },
+        {
+          "from": "scene.scene",
+          "to": "raytracing.scene"
+        },
+        {
+          "from": "camera.view",
+          "to": "raytracing.view"
+        },
+        {
+          "from": "raytracing.color",
+          "to": "output.texture"
+        },
+        {
+          "from": "color.texture",
+          "to": "raytracing.color"
+        },
+        {
+          "from": "color.texture",
+          "to": "subgraph.color"
+        },
+        {
+          "from": "scene.scene",
+          "to": "subgraph.scene"
+        },
+        {
+          "from": "camera.view",
+          "to": "subgraph.view"
+        },
+        {
+          "from": "target.texture",
+          "to": "subgraph.depth"
+        }
+      ],
+      "id": "Default",
+      "inputs": [],
+      "layout": {
+        "positions": [
+          {
+            "node": "raytracing",
+            "x": 501,
+            "y": 129
+          },
+          {
+            "node": "output",
+            "x": 740,
+            "y": 130
+          },
+          {
+            "node": "subgraph",
+            "x": 501,
+            "y": 274
+          }
+        ]
+      },
+      "nodes": [
+        {
+          "id": "scene",
+          "kind": "Scene"
+        },
+        {
+          "active": true,
+          "id": "camera",
+          "kind": "Camera",
+          "role": "Offscreen",
+          "target_type": "ColorTexture"
+        },
+        {
+          "extent": [
+            640,
+            480
+          ],
+          "format": "RGBA8Unorm",
+          "id": "color",
+          "imported": false,
+          "initialized": false,
+          "kind": "Target",
+          "presentation": false,
+          "samples": 1,
+          "type": "ColorTexture"
+        },
+        {
+          "id": "output",
+          "kind": "Export",
+          "type": "ColorTexture"
+        },
+        {
+          "asset": "raytracing.lurender.json",
+          "configuration": "Default",
+          "id": "raytracing",
+          "kind": "Subgraph"
+        },
+        {
+          "asset": "rasterize.lurender.json",
+          "configuration": "ColorAndDepth",
+          "id": "subgraph",
+          "kind": "Subgraph"
+        },
+        {
+          "extent": [
+            640,
+            480
+          ],
+          "format": "Depth32Float",
+          "id": "target",
+          "imported": false,
+          "initialized": false,
+          "kind": "Target",
+          "presentation": false,
+          "samples": 1,
+          "type": "DepthTexture"
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  "default": "Default",
+  "id": "Main",
+  "version": 1
+}

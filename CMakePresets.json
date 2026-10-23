@@ -1,0 +1,162 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 29,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "linux-clang-debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/linux-clang-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_PREFIX_PATH": "$env{LUDUS_SDK_PREFIX}",
+        "CMAKE_CXX_COMPILER": "clang++-18",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "linux-clang-development",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/linux-clang-development",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_PREFIX_PATH": "$env{LUDUS_SDK_PREFIX}",
+        "CMAKE_CXX_COMPILER": "clang++-18",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "linux-clang-release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/linux-clang-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_PREFIX_PATH": "$env{LUDUS_SDK_PREFIX}",
+        "CMAKE_CXX_COMPILER": "clang++-18",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "macos-clang-debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/macos-clang-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_PREFIX_PATH": "$env{LUDUS_SDK_PREFIX}",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "macos-clang-development",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/macos-clang-development",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_PREFIX_PATH": "$env{LUDUS_SDK_PREFIX}",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "macos-clang-release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/macos-clang-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "14.0",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_PREFIX_PATH": "$env{LUDUS_SDK_PREFIX}",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "BUILD_TESTING": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux-clang-debug",
+      "configurePreset": "linux-clang-debug"
+    },
+    {
+      "name": "linux-clang-development",
+      "configurePreset": "linux-clang-development"
+    },
+    {
+      "name": "linux-clang-release",
+      "configurePreset": "linux-clang-release"
+    },
+    {
+      "name": "macos-clang-debug",
+      "configurePreset": "macos-clang-debug"
+    },
+    {
+      "name": "macos-clang-development",
+      "configurePreset": "macos-clang-development"
+    },
+    {
+      "name": "macos-clang-release",
+      "configurePreset": "macos-clang-release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "linux-clang-debug",
+      "configurePreset": "linux-clang-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-clang-development",
+      "configurePreset": "linux-clang-development",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-clang-release",
+      "configurePreset": "linux-clang-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "macos-clang-debug",
+      "configurePreset": "macos-clang-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "macos-clang-development",
+      "configurePreset": "macos-clang-development",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "macos-clang-release",
+      "configurePreset": "macos-clang-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

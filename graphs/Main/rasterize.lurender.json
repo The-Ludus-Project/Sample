@@ -1,0 +1,379 @@
+{
+  "configurations": [
+    {
+      "edges": [
+        {
+          "from": "input.scene",
+          "to": "draw.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "draw.view"
+        },
+        {
+          "from": "input.depth",
+          "to": "draw.depth"
+        },
+        {
+          "from": "input.color",
+          "to": "draw.color"
+        }
+      ],
+      "id": "ColorAndDepth",
+      "inputs": [
+        {
+          "id": "scene",
+          "type": "Scene"
+        },
+        {
+          "id": "view",
+          "type": "View"
+        },
+        {
+          "id": "depth",
+          "type": "DepthTexture"
+        },
+        {
+          "id": "color",
+          "type": "ColorTexture"
+        }
+      ],
+      "layout": {
+        "positions": [
+          {
+            "node": "draw",
+            "x": 0,
+            "y": -2
+          }
+        ]
+      },
+      "nodes": [
+        {
+          "id": "draw",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "depth",
+              "required": true,
+              "type": "DepthTexture"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            }
+          ],
+          "invocation": {
+            "material": "DefaultOpaque",
+            "mode": "ColorAndDepth",
+            "scene": "scene",
+            "vertex_layout": "RendererStatic",
+            "view": "view"
+          },
+          "kind": "GraphicsPipeline",
+          "outputs": [
+            {
+              "format": "Depth32Float",
+              "id": "depth",
+              "load": "Clear",
+              "store": "Store",
+              "target": "depth",
+              "type": "DepthTexture"
+            },
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "vertex",
+              "program": "Geometry",
+              "stage": "vertex"
+            },
+            {
+              "id": "fragment",
+              "program": "Color",
+              "stage": "fragment"
+            }
+          ],
+          "state": {
+            "blend": "Opaque",
+            "cull": "None",
+            "depth_compare": "Less",
+            "depth_write": true,
+            "front": "CounterClockwise",
+            "samples": 1,
+            "topology": "TriangleList"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "depth",
+          "required": false,
+          "source": "draw.depth",
+          "type": "DepthTexture"
+        },
+        {
+          "id": "color",
+          "required": false,
+          "source": "draw.color",
+          "type": "ColorTexture"
+        }
+      ]
+    },
+    {
+      "edges": [
+        {
+          "from": "input.scene",
+          "to": "draw.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "draw.view"
+        },
+        {
+          "from": "input.depth",
+          "to": "draw.depth"
+        }
+      ],
+      "id": "DepthOnly",
+      "inputs": [
+        {
+          "id": "scene",
+          "type": "Scene"
+        },
+        {
+          "id": "view",
+          "type": "View"
+        },
+        {
+          "id": "depth",
+          "type": "DepthTexture"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "draw",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "depth",
+              "required": true,
+              "type": "DepthTexture"
+            }
+          ],
+          "invocation": {
+            "material": "DefaultOpaque",
+            "mode": "DepthOnly",
+            "scene": "scene",
+            "vertex_layout": "RendererStatic",
+            "view": "view"
+          },
+          "kind": "GraphicsPipeline",
+          "outputs": [
+            {
+              "format": "Depth32Float",
+              "id": "depth",
+              "load": "Clear",
+              "store": "Store",
+              "target": "depth",
+              "type": "DepthTexture"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "vertex",
+              "program": "Geometry",
+              "stage": "vertex"
+            },
+            {
+              "id": "fragment",
+              "program": "Depth",
+              "stage": "fragment"
+            }
+          ],
+          "state": {
+            "blend": "Opaque",
+            "cull": "None",
+            "depth_compare": "Less",
+            "depth_write": true,
+            "front": "CounterClockwise",
+            "samples": 1,
+            "topology": "TriangleList"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "depth",
+          "required": true,
+          "source": "draw.depth",
+          "type": "DepthTexture"
+        }
+      ]
+    },
+    {
+      "edges": [
+        {
+          "from": "input.scene",
+          "to": "graphicspipeline.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "graphicspipeline.view"
+        },
+        {
+          "from": "input.depth",
+          "to": "graphicspipeline.depth"
+        },
+        {
+          "from": "input.color",
+          "to": "graphicspipeline.color"
+        }
+      ],
+      "id": "GBuffer",
+      "inputs": [
+        {
+          "id": "scene",
+          "type": "Scene"
+        },
+        {
+          "id": "view",
+          "type": "View"
+        },
+        {
+          "id": "depth",
+          "type": "DepthTexture"
+        },
+        {
+          "id": "color",
+          "type": "ColorTexture"
+        }
+      ],
+      "layout": {
+        "positions": [
+          {
+            "node": "graphicspipeline",
+            "x": -43,
+            "y": 0
+          }
+        ]
+      },
+      "nodes": [
+        {
+          "id": "graphicspipeline",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "depth",
+              "required": true,
+              "type": "DepthTexture"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            }
+          ],
+          "invocation": {
+            "material": "DefaultOpaque",
+            "mode": "ColorAndDepth",
+            "scene": "scene",
+            "vertex_layout": "RendererStatic",
+            "view": "view"
+          },
+          "kind": "GraphicsPipeline",
+          "outputs": [
+            {
+              "format": "Depth32Float",
+              "id": "depth",
+              "load": "Clear",
+              "store": "Store",
+              "target": "depth",
+              "type": "DepthTexture"
+            },
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "vertex",
+              "program": "Geometry",
+              "stage": "vertex"
+            },
+            {
+              "id": "gbuffer",
+              "program": "Shader_graphicspipeline_gbuffer",
+              "stage": "fragment"
+            }
+          ],
+          "state": {
+            "blend": "Opaque",
+            "cull": "None",
+            "depth_compare": "Less",
+            "depth_write": true,
+            "front": "CounterClockwise",
+            "samples": 1,
+            "topology": "TriangleList"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "depth",
+          "required": true,
+          "source": "graphicspipeline.depth",
+          "type": "DepthTexture"
+        },
+        {
+          "id": "color",
+          "required": true,
+          "source": "graphicspipeline.color",
+          "type": "ColorTexture"
+        }
+      ]
+    }
+  ],
+  "default": "ColorAndDepth",
+  "id": "RasterizeGraph",
+  "version": 2
+}

@@ -1,0 +1,123 @@
+{
+  "configurations": [
+    {
+      "edges": [
+        {
+          "from": "input.view",
+          "to": "raytracingpipeline.view"
+        },
+        {
+          "from": "input.scene",
+          "to": "raytracingpipeline.scene"
+        },
+        {
+          "from": "input.color",
+          "to": "raytracingpipeline.color"
+        },
+        {
+          "from": "raytracingpipeline.color",
+          "to": "accumulate.color"
+        }
+      ],
+      "id": "Default",
+      "inputs": [
+        {
+          "id": "view",
+          "type": "View"
+        },
+        {
+          "id": "scene",
+          "type": "Scene"
+        },
+        {
+          "id": "color",
+          "type": "ColorTexture"
+        }
+      ],
+      "layout": {
+        "positions": [
+          {
+            "node": "raytracingpipeline",
+            "x": -40,
+            "y": 0
+          },
+          {
+            "node": "accumulate",
+            "x": 184,
+            "y": 42
+          }
+        ]
+      },
+      "nodes": [
+        {
+          "id": "raytracingpipeline",
+          "inputs": [
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            }
+          ],
+          "invocation": {
+            "dimensions": "ColorTarget"
+          },
+          "kind": "RayTracingPipeline",
+          "outputs": [
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "raygen",
+              "program": "Shader_raytracingpipeline_shader",
+              "stage": "ray_generation"
+            },
+            {
+              "id": "closest_hit",
+              "program": "Shader_raytracingpipeline_closest_hit",
+              "stage": "closest_hit"
+            },
+            {
+              "id": "miss",
+              "program": "Shader_raytracingpipeline_miss",
+              "stage": "miss"
+            }
+          ],
+          "state": {}
+        },
+        {
+          "id": "accumulate",
+          "kind": "Accumulate",
+          "samples": 4096
+        }
+      ],
+      "outputs": [
+        {
+          "id": "color",
+          "required": true,
+          "source": "accumulate.color",
+          "type": "ColorTexture"
+        }
+      ]
+    }
+  ],
+  "default": "Default",
+  "id": "raytracing",
+  "version": 2
+}
