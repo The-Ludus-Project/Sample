@@ -1,0 +1,15 @@
+#include "reservoir.slang"
+
+float3 GenerateRay(SceneContext scene, RayLaunch launch, inout RayQueryContext queries)
+{
+    if (HasReservoirCapacity(launch) == false)
+    {
+        queries.HasFailed = true;
+        return float3(0);
+    }
+    ScenePayload payload = (ScenePayload)0;
+    payload.Launch = launch;
+    // The visibility buffer supplies the primary hit; each pass's closest-hit/miss shades it.
+    LoadVisibilityAndShade(scene, queries, launch, payload);
+    return payload.Radiance;
+}
