@@ -17,6 +17,10 @@
         {
           "from": "raytracingpipeline.color",
           "to": "accumulate.color"
+        },
+        {
+          "from": "accumulate.color",
+          "to": "denoise.color"
         }
       ],
       "id": "Default",
@@ -43,8 +47,13 @@
           },
           {
             "node": "accumulate",
-            "x": 184,
-            "y": 42
+            "x": 162,
+            "y": 45
+          },
+          {
+            "node": "denoise",
+            "x": 376,
+            "y": 40
           }
         ]
       },
@@ -105,6 +114,619 @@
           "id": "accumulate",
           "kind": "Accumulate",
           "samples": 4096
+        },
+        {
+          "id": "denoise",
+          "kind": "Denoise",
+          "quality": "Balanced"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "color",
+          "required": true,
+          "source": "denoise.color",
+          "type": "ColorTexture"
+        }
+      ]
+    },
+    {
+      "edges": [
+        {
+          "from": "input.scene",
+          "to": "initial.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "initial.view"
+        },
+        {
+          "from": "input.color",
+          "to": "initial.color"
+        },
+        {
+          "from": "history.buffer",
+          "to": "initial.history"
+        },
+        {
+          "from": "reservoir.buffer",
+          "to": "initial.reservoir"
+        },
+        {
+          "from": "input.scene",
+          "to": "temporal.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "temporal.view"
+        },
+        {
+          "from": "initial.color",
+          "to": "temporal.color"
+        },
+        {
+          "from": "initial.history",
+          "to": "temporal.history"
+        },
+        {
+          "from": "initial.reservoir",
+          "to": "temporal.reservoir"
+        },
+        {
+          "from": "input.scene",
+          "to": "shade.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "shade.view"
+        },
+        {
+          "from": "temporal.color",
+          "to": "shade.color"
+        },
+        {
+          "from": "temporal.history",
+          "to": "shade.history"
+        },
+        {
+          "from": "temporal.reservoir",
+          "to": "shade.reservoir"
+        },
+        {
+          "from": "renderSize.size",
+          "to": "history.size"
+        },
+        {
+          "from": "renderSize.size",
+          "to": "reservoir.size"
+        },
+        {
+          "from": "input.color",
+          "to": "renderSize.texture"
+        }
+      ],
+      "id": "RestirDi",
+      "inputs": [
+        {
+          "id": "scene",
+          "type": "Scene"
+        },
+        {
+          "id": "view",
+          "type": "View"
+        },
+        {
+          "id": "color",
+          "type": "ColorTexture"
+        }
+      ],
+      "nodes": [
+        {
+          "bytes_per_pixel": 64,
+          "extent": "RenderSize",
+          "id": "history",
+          "kind": "Buffer"
+        },
+        {
+          "bytes_per_pixel": 64,
+          "extent": "RenderSize",
+          "id": "reservoir",
+          "kind": "Buffer"
+        },
+        {
+          "id": "initial",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "history",
+              "required": true,
+              "type": "Buffer"
+            },
+            {
+              "id": "reservoir",
+              "required": true,
+              "type": "Buffer"
+            }
+          ],
+          "invocation": {
+            "dimensions": "ColorTarget"
+          },
+          "kind": "RayTracingPipeline",
+          "outputs": [
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            },
+            {
+              "format": "Bytes",
+              "id": "history",
+              "load": "Load",
+              "store": "Store",
+              "target": "history",
+              "type": "Buffer"
+            },
+            {
+              "format": "Bytes",
+              "id": "reservoir",
+              "load": "Load",
+              "store": "Store",
+              "target": "reservoir",
+              "type": "Buffer"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "ray_generation",
+              "program": "RestirGenerate",
+              "stage": "ray_generation"
+            },
+            {
+              "id": "miss",
+              "program": "RestirMiss",
+              "stage": "miss"
+            },
+            {
+              "id": "closest_hit",
+              "program": "RestirInitialClosest",
+              "stage": "closest_hit"
+            }
+          ],
+          "state": {}
+        },
+        {
+          "id": "temporal",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "history",
+              "required": true,
+              "type": "Buffer"
+            },
+            {
+              "id": "reservoir",
+              "required": true,
+              "type": "Buffer"
+            }
+          ],
+          "invocation": {
+            "dimensions": "ColorTarget"
+          },
+          "kind": "RayTracingPipeline",
+          "outputs": [
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            },
+            {
+              "format": "Bytes",
+              "id": "history",
+              "load": "Load",
+              "store": "Store",
+              "target": "history",
+              "type": "Buffer"
+            },
+            {
+              "format": "Bytes",
+              "id": "reservoir",
+              "load": "Load",
+              "store": "Store",
+              "target": "reservoir",
+              "type": "Buffer"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "ray_generation",
+              "program": "RestirGenerate",
+              "stage": "ray_generation"
+            },
+            {
+              "id": "miss",
+              "program": "RestirMiss",
+              "stage": "miss"
+            },
+            {
+              "id": "closest_hit",
+              "program": "RestirTemporalClosest",
+              "stage": "closest_hit"
+            }
+          ],
+          "state": {}
+        },
+        {
+          "id": "shade",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "history",
+              "required": true,
+              "type": "Buffer"
+            },
+            {
+              "id": "reservoir",
+              "required": true,
+              "type": "Buffer"
+            }
+          ],
+          "invocation": {
+            "dimensions": "ColorTarget"
+          },
+          "kind": "RayTracingPipeline",
+          "outputs": [
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            },
+            {
+              "format": "Bytes",
+              "id": "history",
+              "load": "Load",
+              "store": "Store",
+              "target": "history",
+              "type": "Buffer"
+            },
+            {
+              "format": "Bytes",
+              "id": "reservoir",
+              "load": "Load",
+              "store": "Store",
+              "target": "reservoir",
+              "type": "Buffer"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "ray_generation",
+              "program": "RestirGenerate",
+              "stage": "ray_generation"
+            },
+            {
+              "id": "miss",
+              "program": "RestirMiss",
+              "stage": "miss"
+            },
+            {
+              "id": "closest_hit",
+              "program": "RestirSpatialClosest",
+              "stage": "closest_hit"
+            }
+          ],
+          "state": {}
+        },
+        {
+          "extent": "Texture",
+          "id": "renderSize",
+          "kind": "RenderSize"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "color",
+          "required": true,
+          "source": "shade.color",
+          "type": "ColorTexture"
+        }
+      ]
+    },
+    {
+      "edges": [
+        {
+          "from": "input.scene",
+          "to": "raster.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "raster.view"
+        },
+        {
+          "from": "visibility.texture",
+          "to": "raster.color"
+        },
+        {
+          "from": "depth.texture",
+          "to": "raster.depth"
+        },
+        {
+          "from": "renderSize.size",
+          "to": "visibility.size"
+        },
+        {
+          "from": "renderSize.size",
+          "to": "depth.size"
+        },
+        {
+          "from": "input.scene",
+          "to": "trace.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "trace.view"
+        },
+        {
+          "from": "input.color",
+          "to": "trace.color"
+        },
+        {
+          "from": "raster.color",
+          "to": "trace.visibility"
+        },
+        {
+          "from": "raster.depth",
+          "to": "trace.depth"
+        },
+        {
+          "from": "input.color",
+          "to": "renderSize.texture"
+        },
+        {
+          "from": "trace.color",
+          "to": "accumulate.color"
+        }
+      ],
+      "id": "VbufferRt",
+      "inputs": [
+        {
+          "id": "scene",
+          "type": "Scene"
+        },
+        {
+          "id": "view",
+          "type": "View"
+        },
+        {
+          "id": "color",
+          "type": "ColorTexture"
+        }
+      ],
+      "layout": {
+        "positions": [
+          {
+            "node": "accumulate",
+            "x": 991,
+            "y": -32
+          }
+        ]
+      },
+      "nodes": [
+        {
+          "extent": "RenderSize",
+          "format": "RGBA8Unorm",
+          "id": "visibility",
+          "imported": false,
+          "initialized": false,
+          "kind": "Target",
+          "presentation": false,
+          "samples": 1,
+          "type": "ColorTexture"
+        },
+        {
+          "extent": "RenderSize",
+          "format": "Depth32Float",
+          "id": "depth",
+          "imported": false,
+          "initialized": false,
+          "kind": "Target",
+          "presentation": false,
+          "samples": 1,
+          "type": "DepthTexture"
+        },
+        {
+          "id": "raster",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "depth",
+              "required": true,
+              "type": "DepthTexture"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            }
+          ],
+          "invocation": {
+            "material": "DefaultOpaque",
+            "mode": "ColorAndDepth",
+            "scene": "scene",
+            "vertex_layout": "RendererStatic",
+            "view": "view"
+          },
+          "kind": "GraphicsPipeline",
+          "outputs": [
+            {
+              "format": "Depth32Float",
+              "id": "depth",
+              "load": "Clear",
+              "store": "Store",
+              "target": "depth",
+              "type": "DepthTexture"
+            },
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "vertex",
+              "program": "VisibilityGeometry",
+              "stage": "vertex"
+            },
+            {
+              "id": "fragment",
+              "program": "VisibilityColor",
+              "stage": "fragment"
+            }
+          ],
+          "state": {
+            "blend": "Opaque",
+            "cull": "None",
+            "depth_compare": "Less",
+            "depth_write": true,
+            "front": "CounterClockwise",
+            "samples": 1,
+            "topology": "TriangleList"
+          }
+        },
+        {
+          "id": "trace",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "visibility",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "depth",
+              "required": true,
+              "type": "DepthTexture"
+            }
+          ],
+          "invocation": {
+            "dimensions": "ColorTarget"
+          },
+          "kind": "RayTracingPipeline",
+          "outputs": [
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "ray_generation",
+              "program": "VisibilitySecondaryGenerate",
+              "stage": "ray_generation"
+            },
+            {
+              "id": "miss",
+              "program": "VisibilitySecondaryMiss",
+              "stage": "miss"
+            },
+            {
+              "id": "closest_hit",
+              "program": "VisibilitySecondaryClosest",
+              "stage": "closest_hit"
+            }
+          ],
+          "state": {}
+        },
+        {
+          "extent": "Texture",
+          "id": "renderSize",
+          "kind": "RenderSize"
+        },
+        {
+          "id": "accumulate",
+          "kind": "Accumulate",
+          "samples": 4096
         }
       ],
       "outputs": [
@@ -112,6 +734,298 @@
           "id": "color",
           "required": true,
           "source": "accumulate.color",
+          "type": "ColorTexture"
+        },
+        {
+          "id": "visibility",
+          "required": false,
+          "source": "raster.color",
+          "type": "ColorTexture"
+        },
+        {
+          "id": "depth",
+          "required": false,
+          "source": "raster.depth",
+          "type": "DepthTexture"
+        }
+      ]
+    },
+    {
+      "edges": [
+        {
+          "from": "input.view",
+          "to": "raytracingpipeline.view"
+        },
+        {
+          "from": "input.scene",
+          "to": "raytracingpipeline.scene"
+        },
+        {
+          "from": "input.color",
+          "to": "raytracingpipeline.color"
+        },
+        {
+          "from": "raytracingpipeline.color",
+          "to": "accumulate.color"
+        },
+        {
+          "from": "accumulate.color",
+          "to": "denoise.color"
+        },
+        {
+          "from": "input.color",
+          "to": "renderSize.texture"
+        },
+        {
+          "from": "renderSize.size",
+          "to": "visibility.size"
+        },
+        {
+          "from": "renderSize.size",
+          "to": "depth.size"
+        },
+        {
+          "from": "input.scene",
+          "to": "raster.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "raster.view"
+        },
+        {
+          "from": "visibility.texture",
+          "to": "raster.color"
+        },
+        {
+          "from": "depth.texture",
+          "to": "raster.depth"
+        },
+        {
+          "from": "raster.color",
+          "to": "raytracingpipeline.visibility"
+        },
+        {
+          "from": "raster.depth",
+          "to": "raytracingpipeline.depth"
+        }
+      ],
+      "id": "DefaultVbuffer",
+      "inputs": [
+        {
+          "id": "view",
+          "type": "View"
+        },
+        {
+          "id": "scene",
+          "type": "Scene"
+        },
+        {
+          "id": "color",
+          "type": "ColorTexture"
+        }
+      ],
+      "layout": {
+        "positions": [
+          {
+            "node": "raytracingpipeline",
+            "x": -40,
+            "y": 0
+          },
+          {
+            "node": "accumulate",
+            "x": 162,
+            "y": 45
+          },
+          {
+            "node": "denoise",
+            "x": 376,
+            "y": 40
+          },
+          {
+            "node": "raster",
+            "x": -280,
+            "y": 0
+          }
+        ]
+      },
+      "nodes": [
+        {
+          "extent": "RenderSize",
+          "format": "RGBA8Unorm",
+          "id": "visibility",
+          "imported": false,
+          "initialized": false,
+          "kind": "Target",
+          "presentation": false,
+          "samples": 1,
+          "type": "ColorTexture"
+        },
+        {
+          "extent": "RenderSize",
+          "format": "Depth32Float",
+          "id": "depth",
+          "imported": false,
+          "initialized": false,
+          "kind": "Target",
+          "presentation": false,
+          "samples": 1,
+          "type": "DepthTexture"
+        },
+        {
+          "extent": "Texture",
+          "id": "renderSize",
+          "kind": "RenderSize"
+        },
+        {
+          "id": "raster",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "depth",
+              "required": true,
+              "type": "DepthTexture"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            }
+          ],
+          "invocation": {
+            "material": "DefaultOpaque",
+            "mode": "ColorAndDepth",
+            "scene": "scene",
+            "vertex_layout": "RendererStatic",
+            "view": "view"
+          },
+          "kind": "GraphicsPipeline",
+          "outputs": [
+            {
+              "format": "Depth32Float",
+              "id": "depth",
+              "load": "Clear",
+              "store": "Store",
+              "target": "depth",
+              "type": "DepthTexture"
+            },
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "vertex",
+              "program": "VisibilityGeometry",
+              "stage": "vertex"
+            },
+            {
+              "id": "fragment",
+              "program": "VisibilityColor",
+              "stage": "fragment"
+            }
+          ],
+          "state": {
+            "blend": "Opaque",
+            "cull": "None",
+            "depth_compare": "Less",
+            "depth_write": true,
+            "front": "CounterClockwise",
+            "samples": 1,
+            "topology": "TriangleList"
+          }
+        },
+        {
+          "id": "raytracingpipeline",
+          "inputs": [
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "visibility",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "depth",
+              "required": true,
+              "type": "DepthTexture"
+            }
+          ],
+          "invocation": {
+            "dimensions": "ColorTarget"
+          },
+          "kind": "RayTracingPipeline",
+          "outputs": [
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "raygen",
+              "program": "Shader_raytracingpipeline_vbuffer_shader",
+              "stage": "ray_generation"
+            },
+            {
+              "id": "closest_hit",
+              "program": "Shader_raytracingpipeline_closest_hit",
+              "stage": "closest_hit"
+            },
+            {
+              "id": "miss",
+              "program": "Shader_raytracingpipeline_miss",
+              "stage": "miss"
+            }
+          ],
+          "state": {}
+        },
+        {
+          "id": "accumulate",
+          "kind": "Accumulate",
+          "samples": 4096
+        },
+        {
+          "id": "denoise",
+          "kind": "Denoise",
+          "quality": "Balanced"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "color",
+          "required": true,
+          "source": "denoise.color",
           "type": "ColorTexture"
         }
       ]

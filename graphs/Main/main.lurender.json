@@ -15,7 +15,7 @@
           "to": "raytracing.view"
         },
         {
-          "from": "raytracing.color",
+          "from": "tonemap.color",
           "to": "output.texture"
         },
         {
@@ -37,6 +37,62 @@
         {
           "from": "target.texture",
           "to": "subgraph.depth"
+        },
+        {
+          "from": "vbufferRt.color",
+          "to": "tonemap.color"
+        },
+        {
+          "from": "renderSize.size",
+          "to": "color.size"
+        },
+        {
+          "from": "renderSize.size",
+          "to": "target.size"
+        },
+        {
+          "from": "outputSize.size",
+          "to": "renderSize.output"
+        },
+        {
+          "from": "scene.scene",
+          "to": "restirDi.scene"
+        },
+        {
+          "from": "camera.view",
+          "to": "restirDi.view"
+        },
+        {
+          "from": "color.texture",
+          "to": "restirDi.color"
+        },
+        {
+          "from": "scene.scene",
+          "to": "vbufferRt.scene"
+        },
+        {
+          "from": "camera.view",
+          "to": "vbufferRt.view"
+        },
+        {
+          "from": "color.texture",
+          "to": "vbufferRt.color"
+        },
+        {
+          "from": "vbufferRt.depth",
+          "to": "depth.texture"
+        },
+        {
+          "from": "scene.scene",
+          "to": "defaultVbuffer.scene"
+        },
+        {
+          "from": "camera.view",
+          "to": "defaultVbuffer.view"
+        },
+        {
+          "from": "color.texture",
+          "to": "defaultVbuffer.color"
         }
       ],
       "id": "Default",
@@ -50,13 +106,43 @@
           },
           {
             "node": "output",
-            "x": 740,
-            "y": 130
+            "x": 1248,
+            "y": 199
           },
           {
             "node": "subgraph",
+            "x": 509,
+            "y": 558
+          },
+          {
+            "node": "tonemap",
+            "x": 985,
+            "y": 187
+          },
+          {
+            "node": "target",
+            "x": 182,
+            "y": 306
+          },
+          {
+            "node": "restirDi",
             "x": 501,
-            "y": 274
+            "y": 281
+          },
+          {
+            "node": "vbufferRt",
+            "x": 754,
+            "y": 305
+          },
+          {
+            "node": "depth",
+            "x": 1248,
+            "y": 316
+          },
+          {
+            "node": "defaultVbuffer",
+            "x": 754,
+            "y": 430
           }
         ]
       },
@@ -73,10 +159,7 @@
           "target_type": "ColorTexture"
         },
         {
-          "extent": [
-            640,
-            480
-          ],
+          "extent": "RenderSize",
           "format": "RGBA8Unorm",
           "id": "color",
           "imported": false,
@@ -104,10 +187,7 @@
           "kind": "Subgraph"
         },
         {
-          "extent": [
-            640,
-            480
-          ],
+          "extent": "RenderSize",
           "format": "Depth32Float",
           "id": "target",
           "imported": false,
@@ -116,6 +196,48 @@
           "presentation": false,
           "samples": 1,
           "type": "DepthTexture"
+        },
+        {
+          "exposure": 1,
+          "id": "tonemap",
+          "kind": "ToneMap"
+        },
+        {
+          "extent": "Viewport",
+          "id": "outputSize",
+          "kind": "OutputSize"
+        },
+        {
+          "extent": "OutputSize",
+          "id": "renderSize",
+          "kind": "RenderSize",
+          "scale": [
+            1,
+            1
+          ]
+        },
+        {
+          "asset": "raytracing.lurender.json",
+          "configuration": "RestirDi",
+          "id": "restirDi",
+          "kind": "Subgraph"
+        },
+        {
+          "asset": "raytracing.lurender.json",
+          "configuration": "VbufferRt",
+          "id": "vbufferRt",
+          "kind": "Subgraph"
+        },
+        {
+          "id": "depth",
+          "kind": "Export",
+          "type": "DepthTexture"
+        },
+        {
+          "asset": "raytracing.lurender.json",
+          "configuration": "DefaultVbuffer",
+          "id": "defaultVbuffer",
+          "kind": "Subgraph"
         }
       ],
       "outputs": []
@@ -123,5 +245,5 @@
   ],
   "default": "Default",
   "id": "Main",
-  "version": 1
+  "version": 2
 }
