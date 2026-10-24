@@ -84,6 +84,12 @@ jobs:
           brew install llvm@23 lld@23
       - name: Prepare the locked Release preset
         run: ./init.sh --cli --no-system-install --locked --preset-only "$PRESET"
+      - name: Build position-independent Linux libraries
+        if: runner.os == 'Linux'
+        # Shared game modules link the SDK's static libraries. Ludus a76f56c1
+        # builds the foundation libraries as PIC only with LUDUS_BUILD_BEHAVIOR=ON,
+        # so the SDK consumer's reflection module otherwise fails to link.
+        run: out/host-tools/venv/bin/cmake --preset "$PRESET" -DCMAKE_POSITION_INDEPENDENT_CODE=ON
       - name: Prepare the pinned shader compiler
         if: runner.os == 'macOS'
         run: |
