@@ -3,7 +3,7 @@
     "artifacts": 64,
     "configurations": 8,
     "pipelines": 16,
-    "programs": 16
+    "programs": 18
   },
   "id": "RendererStaticBuild",
   "profiles": [
@@ -136,6 +136,42 @@
       "output": "Color",
       "source": "visibility_buffer/main_shaders/color.slang",
       "stage": "fragment"
+    },
+    {
+      "bindings": [],
+      "function": "GenerateRay",
+      "id": "VisibilitySecondaryGenerate",
+      "input": "RayLaunch",
+      "output": "Radiance",
+      "source": "visibility_nee_generate.slang",
+      "stage": "ray_generation"
+    },
+    {
+      "bindings": [],
+      "function": "ShadeMiss",
+      "id": "VisibilitySecondaryMiss",
+      "input": "Ray",
+      "output": "ScenePayload",
+      "source": "visibility_secondary_rays/main_shaders/miss.slang",
+      "stage": "miss"
+    },
+    {
+      "bindings": [],
+      "function": "ShadeClosest",
+      "id": "VisibilitySecondaryClosest",
+      "input": "SurfaceHit",
+      "output": "ScenePayload",
+      "source": "visibility_secondary_rays/main_shaders/closest.slang",
+      "stage": "closest_hit"
+    },
+    {
+      "bindings": [],
+      "function": "SceneShaderVbufferMain",
+      "id": "Shader_raytracingpipeline_vbuffer_shader",
+      "input": "RayLaunch",
+      "output": "Radiance",
+      "source": "shader_Scene_Shader_raytracingpipeline_vbuffer_shader.slang",
+      "stage": "ray_generation"
     }
   ],
   "schemas": [

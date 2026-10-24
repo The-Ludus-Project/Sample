@@ -9,7 +9,6 @@ float3 GenerateRay(SceneContext scene, RayLaunch launch, inout RayQueryContext q
     }
     ScenePayload payload = (ScenePayload)0;
     payload.Launch = launch;
-    // The visibility buffer supplies the primary hit; each pass's closest-hit/miss shades it.
-    LoadVisibilityAndShade(scene, queries, launch, payload);
+    TraceAndShade(scene, queries, launch.CameraRay, payload);
     return payload.Radiance;
 }
