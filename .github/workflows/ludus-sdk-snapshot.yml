@@ -1,0 +1,156 @@
+name: Ludus SDK snapshot
+# Builds a Ludus Release SDK archive for each Ludus CI platform at the pinned
+# Ludus commit (config/ludus-tools-revision.txt), on the runner that CI uses for
+# that platform. No Ludus engine releases are published yet, so these archives
+# stand in for them. A manual run can attach them to a prerelease of this
+# repository; set the repository variables from that run's job summary:
+# LUDUS_RELEASE_SDK_URL_<PLATFORM> and LUDUS_RELEASE_SDK_SHA256_<PLATFORM>.
+on:
+  # Changes to this workflow build the archives as run artifacts, never a release.
+  pull_request:
+    paths:
+      - .github/workflows/ludus-sdk-snapshot.yml
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Attach the archives to a new prerelease named ludus-sdk-<commit>
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: ludus-sdk-snapshot-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  resolve:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      ref: ${{ steps.ref.outputs.ref }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1 (Node 24)
+        with:
+          persist-credentials: false
+      - id: ref
+        run: |
+          ref=$(cat config/ludus-tools-revision.txt)
+          [[ "$ref" =~ ^[0-9a-f]{40}$ ]]
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+  build:
+    needs: resolve
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            runner: ubuntu-24.04
+            preset: linux-clang-release
+            triple: x86_64-linux-gnu
+          - platform: macos-arm64
+            runner: macos-15
+            preset: macos-clang-release
+            triple: arm64-apple-darwin
+          - platform: macos-x64
+            runner: macos-15-intel
+            preset: macos-clang-release
+            triple: x86_64-apple-darwin
+    name: Build ${{ matrix.platform }} Release SDK
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 240
+    env:
+      CI: "true"
+      LUDUS_DIAGNOSTIC_INTERACTIVE: "0"
+      PRESET: ${{ matrix.preset }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1 (Node 24)
+        with:
+          repository: The-Ludus-Project/Ludus
+          ref: ${{ needs.resolve.outputs.ref }}
+          persist-credentials: false
+      - name: Install Linux prerequisites
+        if: runner.os == 'Linux'
+        run: |
+          # Ubuntu 24.04 does not package the pinned LLVM; use Ludus's pinned apt.llvm.org suite.
+          python3 scripts/python/llvm_apt_source.py
+          sudo apt-get update -qq
+          # ./init.sh also requires the pinned clang-format and clang-tidy.
+          sudo apt-get install -y -qq clang-23 llvm-23 lld-23 clang-format-23 clang-tidy-23 libclang-rt-23-dev \
+            python3-venv libwayland-dev wayland-protocols libwayland-bin
+      - name: Install macOS prerequisites
+        if: runner.os == 'macOS'
+        run: |
+          # Runner images can carry stale formula metadata; refresh it first.
+          brew update --quiet
+          brew install llvm@23 lld@23
+      - name: Prepare the locked Release preset
+        run: ./init.sh --cli --no-system-install --locked --preset-only "$PRESET"
+      - name: Build position-independent Linux libraries
+        if: runner.os == 'Linux'
+        # Shared game modules link the SDK's static libraries. Ludus a76f56c1
+        # builds the foundation libraries as PIC only with LUDUS_BUILD_BEHAVIOR=ON,
+        # so the SDK consumer's reflection module otherwise fails to link.
+        run: out/host-tools/venv/bin/cmake --preset "$PRESET" -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+      - name: Prepare the pinned shader compiler
+        if: runner.os == 'macOS'
+        run: |
+          ./scripts/shader-probe bootstrap
+          out/host-tools/venv/bin/cmake --preset "$PRESET" -DLUDUS_SLANG_COMPILER="$PWD/out/shader-tools/slang/bin/slangc"
+      - name: Build, install and verify the SDK
+        run: ./scripts/install-sdk "$PRESET"
+      - name: Archive the SDK
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          TRIPLE: ${{ matrix.triple }}
+          REF: ${{ needs.resolve.outputs.ref }}
+        run: |
+          python3 - "out/install/$PRESET/share/Ludus/LudusSdkManifest.json" <<'PYTHON'
+          import json, os, sys
+          manifest = json.load(open(sys.argv[1]))
+          assert manifest["build_flavor"] == "Release", manifest["build_flavor"]
+          assert manifest["target_triple"] == os.environ["TRIPLE"], manifest["target_triple"]
+          assert manifest["source_revision"] == os.environ["REF"], manifest["source_revision"]
+          print("SDK identity:", manifest["sdk_variant"], manifest["target_triple"], manifest["compiler_id"], manifest["compiler_version"])
+          PYTHON
+          name="ludus-sdk-$PLATFORM-release-${REF:0:12}.tar.gz"
+          mkdir -p "$RUNNER_TEMP/sdk"
+          tar -C out/install -czf "$RUNNER_TEMP/sdk/$name" "$PRESET"
+          (cd "$RUNNER_TEMP/sdk" && shasum -a 256 "$name" | tee "$name.sha256")
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ludus-sdk-${{ matrix.platform }}
+          path: ${{ runner.temp }}/sdk/
+          if-no-files-found: error
+          retention-days: 14
+  publish:
+    needs: [resolve, build]
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: ludus-sdk-*
+          path: sdk
+          merge-multiple: true
+      - name: Create the prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ needs.resolve.outputs.ref }}
+        run: |
+          tag="ludus-sdk-${REF:0:12}"
+          # Archives are immutable: an existing release for this commit fails instead of being replaced.
+          gh release create "$tag" sdk/*.tar.gz --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
+            --title "Ludus Release SDKs ($tag)" \
+            --notes "Ludus Release SDK archives built from The-Ludus-Project/Ludus@$REF for Ludus CI. Not an official engine release."
+          {
+            echo "| Variable | Value |"
+            echo "| --- | --- |"
+            for checksum in sdk/*.sha256; do
+              read -r digest name < "$checksum"
+              suffix=$(echo "$name" | sed -E 's/^ludus-sdk-(.*)-release-.*$/\1/' | tr 'a-z-' 'A-Z_')
+              echo "| LUDUS_RELEASE_SDK_URL_$suffix | https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/$name |"
+              echo "| LUDUS_RELEASE_SDK_SHA256_$suffix | $digest |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
