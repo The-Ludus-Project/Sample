@@ -274,8 +274,10 @@ float3 GetIndexColor(uint index)
 }
 #endif
 
+// isEmissionTwoSided is GetMaterial(triangle.MaterialIndex).IsEmissionTwoSided,
+// supplied by the caller so per-emitter loops can fetch the material once.
 bool TryComputeTriangleImportance(
-    SceneContext scene, TriangleData triangle, float3 receiverPositionWorld,
+    SceneContext scene, TriangleData triangle, bool isEmissionTwoSided, float3 receiverPositionWorld,
     float3 samplingNormalWorld, inout RayQueryContext queries, out float importance)
 {
     importance = 0.0f;
@@ -318,10 +320,9 @@ bool TryComputeTriangleImportance(
             queries.HasFailed = true;
             return false;
         }
-        const MaterialSample emitterMaterial = GetMaterial(scene, triangle.MaterialIndex);
         const float cosSurface = max(dot(samplingNormalWorld, directionWorld), 0.0f);
         const float facing = dot(emitterNormalWorld, -directionWorld);
-        const float cosEmitter = emitterMaterial.IsEmissionTwoSided ? abs(facing) : max(facing, 0.0f);
+        const float cosEmitter = isEmissionTwoSided ? abs(facing) : max(facing, 0.0f);
         angularWeight = max(cosSurface * cosEmitter, angularFloor);
     }
 #endif
@@ -372,6 +373,10 @@ bool TryComputeEmitterWeight(
     {
         return false;
     }
+    // An emitter's triangles normally share one material: refetch only when the
+    // index changes, keeping a dependent material load out of the per-triangle path.
+    uint cachedMaterialIndex = 0xFFFFFFFFu;
+    bool isEmissionTwoSided = false;
     for (uint i = 0u; i < triangleCount; ++i)
     {
         const TriangleData triangle = GetEmitterTriangle(scene, emitterIndex, i);
@@ -383,8 +388,15 @@ bool TryComputeEmitterWeight(
         {
             continue;
         }
+#if LUDUS_EMITTER_SAMPLING_MODE_DISTANCE_WEIGHTED_ORIENTATION
+        if (triangle.MaterialIndex != cachedMaterialIndex)
+        {
+            isEmissionTwoSided = GetMaterial(scene, triangle.MaterialIndex).IsEmissionTwoSided;
+            cachedMaterialIndex = triangle.MaterialIndex;
+        }
+#endif
         float importance;
-        if (TryComputeTriangleImportance(scene, triangle, receiverPositionWorld, samplingNormalWorld, queries, importance) == false)
+        if (TryComputeTriangleImportance(scene, triangle, isEmissionTwoSided, receiverPositionWorld, samplingNormalWorld, queries, importance) == false)
         {
             return false;
         }
@@ -657,7 +669,11 @@ bool TryComputeReservoirTriangleWeight(
     weight = triangle.AreaWorld;
 #else
     weight = 0.0f;
-    if (TryComputeTriangleImportance(scene, triangle, receiverPositionWorld, samplingNormalWorld, queries, importance) == false)
+    bool isEmissionTwoSided = false;
+#if LUDUS_EMITTER_SAMPLING_MODE_DISTANCE_WEIGHTED_ORIENTATION
+    isEmissionTwoSided = GetMaterial(scene, triangle.MaterialIndex).IsEmissionTwoSided;
+#endif
+    if (TryComputeTriangleImportance(scene, triangle, isEmissionTwoSided, receiverPositionWorld, samplingNormalWorld, queries, importance) == false)
     {
         return false;
     }
@@ -1108,7 +1124,14 @@ void SceneShaderMain(
         queries.HasFailed = true;
         return;
     }
-    const float3 surfaceEmission = EvaluateEmission(scene, hit, viewDirectionWorld);
+    // Evaluate the (textured) material once. The emission below is exactly what
+    // EvaluateEmission(scene, hit, viewDirectionWorld) returns, without its second
+    // EvaluateMaterial call.
+    const MaterialSample material = EvaluateMaterial(scene, hit);
+    const float3 surfaceEmission =
+        material.IsValid && (material.IsEmissionTwoSided || dot(hit.GeometricNormalWorld, viewDirectionWorld) > 0.0f)
+            ? material.Emission
+            : float3(0.0f);
     if (ValidateNonnegativeSpectrum(surfaceEmission, queries) == false)
     {
         return;
@@ -1131,7 +1154,6 @@ void SceneShaderMain(
     {
         return;
     }
-    const MaterialSample material = EvaluateMaterial(scene, hit);
     if (material.IsValid == false)
     {
         return;

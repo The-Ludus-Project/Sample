@@ -1029,6 +1029,513 @@
           "type": "ColorTexture"
         }
       ]
+    },
+    {
+      "edges": [
+        {
+          "from": "input.scene",
+          "to": "raster.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "raster.view"
+        },
+        {
+          "from": "visibility.texture",
+          "to": "raster.color"
+        },
+        {
+          "from": "depth.texture",
+          "to": "raster.depth"
+        },
+        {
+          "from": "renderSize.size",
+          "to": "visibility.size"
+        },
+        {
+          "from": "renderSize.size",
+          "to": "depth.size"
+        },
+        {
+          "from": "input.color",
+          "to": "renderSize.texture"
+        },
+        {
+          "from": "input.scene",
+          "to": "tiles.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "tiles.view"
+        },
+        {
+          "from": "input.color",
+          "to": "tiles.color"
+        },
+        {
+          "from": "table.buffer",
+          "to": "tiles.table"
+        },
+        {
+          "from": "raster.color",
+          "to": "tiles.visibility"
+        },
+        {
+          "from": "raster.depth",
+          "to": "tiles.depth"
+        },
+        {
+          "from": "input.scene",
+          "to": "prefix.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "prefix.view"
+        },
+        {
+          "from": "tiles.color",
+          "to": "prefix.color"
+        },
+        {
+          "from": "tiles.table",
+          "to": "prefix.table"
+        },
+        {
+          "from": "raster.color",
+          "to": "prefix.visibility"
+        },
+        {
+          "from": "raster.depth",
+          "to": "prefix.depth"
+        },
+        {
+          "from": "input.scene",
+          "to": "shade.scene"
+        },
+        {
+          "from": "input.view",
+          "to": "shade.view"
+        },
+        {
+          "from": "prefix.color",
+          "to": "shade.color"
+        },
+        {
+          "from": "prefix.table",
+          "to": "shade.table"
+        },
+        {
+          "from": "raster.color",
+          "to": "shade.visibility"
+        },
+        {
+          "from": "raster.depth",
+          "to": "shade.depth"
+        },
+        {
+          "from": "renderSize.size",
+          "to": "table.size"
+        },
+        {
+          "from": "shade.color",
+          "to": "accumulate.color"
+        },
+        {
+          "from": "accumulate.color",
+          "to": "denoise.color"
+        }
+      ],
+      "id": "tiledVbufferNee",
+      "inputs": [
+        {
+          "id": "scene",
+          "type": "Scene"
+        },
+        {
+          "id": "view",
+          "type": "View"
+        },
+        {
+          "id": "color",
+          "type": "ColorTexture"
+        }
+      ],
+      "layout": {
+        "positions": [
+          {
+            "node": "accumulate",
+            "x": 1507,
+            "y": 113
+          },
+          {
+            "node": "denoise",
+            "x": 1746,
+            "y": 113
+          }
+        ]
+      },
+      "nodes": [
+        {
+          "extent": "RenderSize",
+          "format": "RGBA8Unorm",
+          "id": "visibility",
+          "imported": false,
+          "initialized": false,
+          "kind": "Target",
+          "presentation": false,
+          "samples": 1,
+          "type": "ColorTexture"
+        },
+        {
+          "extent": "RenderSize",
+          "format": "Depth32Float",
+          "id": "depth",
+          "imported": false,
+          "initialized": false,
+          "kind": "Target",
+          "presentation": false,
+          "samples": 1,
+          "type": "DepthTexture"
+        },
+        {
+          "id": "raster",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "depth",
+              "required": true,
+              "type": "DepthTexture"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            }
+          ],
+          "invocation": {
+            "material": "DefaultOpaque",
+            "mode": "ColorAndDepth",
+            "scene": "scene",
+            "vertex_layout": "RendererStatic",
+            "view": "view"
+          },
+          "kind": "GraphicsPipeline",
+          "outputs": [
+            {
+              "format": "Depth32Float",
+              "id": "depth",
+              "load": "Clear",
+              "store": "Store",
+              "target": "depth",
+              "type": "DepthTexture"
+            },
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "vertex",
+              "program": "VisibilityGeometry",
+              "stage": "vertex"
+            },
+            {
+              "id": "fragment",
+              "program": "VisibilityColor",
+              "stage": "fragment"
+            }
+          ],
+          "state": {
+            "blend": "Opaque",
+            "cull": "None",
+            "depth_compare": "Less",
+            "depth_write": true,
+            "front": "CounterClockwise",
+            "samples": 1,
+            "topology": "TriangleList"
+          }
+        },
+        {
+          "bytes_per_pixel": 32,
+          "extent": "RenderSize",
+          "id": "table",
+          "kind": "Buffer"
+        },
+        {
+          "id": "tiles",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "table",
+              "required": true,
+              "type": "Buffer"
+            },
+            {
+              "id": "visibility",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "depth",
+              "required": true,
+              "type": "DepthTexture"
+            }
+          ],
+          "invocation": {
+            "dimensions": "ColorTarget"
+          },
+          "kind": "RayTracingPipeline",
+          "outputs": [
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            },
+            {
+              "format": "Bytes",
+              "id": "table",
+              "load": "Load",
+              "store": "Store",
+              "target": "table",
+              "type": "Buffer"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "ray_generation",
+              "program": "TiledNeeTiles",
+              "stage": "ray_generation"
+            },
+            {
+              "id": "miss",
+              "program": "TiledNeeMiss",
+              "stage": "miss"
+            },
+            {
+              "id": "closest_hit",
+              "program": "TiledNeeClosest",
+              "stage": "closest_hit"
+            }
+          ],
+          "state": {}
+        },
+        {
+          "id": "prefix",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "table",
+              "required": true,
+              "type": "Buffer"
+            },
+            {
+              "id": "visibility",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "depth",
+              "required": true,
+              "type": "DepthTexture"
+            }
+          ],
+          "invocation": {
+            "dimensions": "ColorTarget"
+          },
+          "kind": "RayTracingPipeline",
+          "outputs": [
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            },
+            {
+              "format": "Bytes",
+              "id": "table",
+              "load": "Load",
+              "store": "Store",
+              "target": "table",
+              "type": "Buffer"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "ray_generation",
+              "program": "TiledNeePrefix",
+              "stage": "ray_generation"
+            },
+            {
+              "id": "miss",
+              "program": "TiledNeeMiss",
+              "stage": "miss"
+            },
+            {
+              "id": "closest_hit",
+              "program": "TiledNeeClosest",
+              "stage": "closest_hit"
+            }
+          ],
+          "state": {}
+        },
+        {
+          "id": "shade",
+          "inputs": [
+            {
+              "id": "scene",
+              "required": true,
+              "type": "Scene"
+            },
+            {
+              "id": "view",
+              "required": true,
+              "type": "View"
+            },
+            {
+              "id": "color",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "table",
+              "required": true,
+              "type": "Buffer"
+            },
+            {
+              "id": "visibility",
+              "required": true,
+              "type": "ColorTexture"
+            },
+            {
+              "id": "depth",
+              "required": true,
+              "type": "DepthTexture"
+            }
+          ],
+          "invocation": {
+            "dimensions": "ColorTarget"
+          },
+          "kind": "RayTracingPipeline",
+          "outputs": [
+            {
+              "format": "RGBA8Unorm",
+              "id": "color",
+              "load": "Clear",
+              "store": "Store",
+              "target": "color",
+              "type": "ColorTexture"
+            },
+            {
+              "format": "Bytes",
+              "id": "table",
+              "load": "Load",
+              "store": "Store",
+              "target": "table",
+              "type": "Buffer"
+            }
+          ],
+          "shaders": [
+            {
+              "id": "ray_generation",
+              "program": "TiledNeeShade",
+              "stage": "ray_generation"
+            },
+            {
+              "id": "miss",
+              "program": "TiledNeeMiss",
+              "stage": "miss"
+            },
+            {
+              "id": "closest_hit",
+              "program": "TiledNeeClosest",
+              "stage": "closest_hit"
+            }
+          ],
+          "state": {}
+        },
+        {
+          "extent": "Texture",
+          "id": "renderSize",
+          "kind": "RenderSize"
+        },
+        {
+          "id": "accumulate",
+          "kind": "Accumulate",
+          "samples": 4096
+        },
+        {
+          "id": "denoise",
+          "kind": "Denoise",
+          "quality": "Balanced"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "color",
+          "required": true,
+          "source": "denoise.color",
+          "type": "ColorTexture"
+        },
+        {
+          "id": "visibility",
+          "required": false,
+          "source": "raster.color",
+          "type": "ColorTexture"
+        },
+        {
+          "id": "depth",
+          "required": false,
+          "source": "raster.depth",
+          "type": "DepthTexture"
+        }
+      ]
     }
   ],
   "default": "Default",
