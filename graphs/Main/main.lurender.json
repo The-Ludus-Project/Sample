@@ -39,7 +39,7 @@
           "to": "subgraph.depth"
         },
         {
-          "from": "vbufferRt.color",
+          "from": "tiledVbufferNee.color",
           "to": "tonemap.color"
         },
         {
@@ -79,7 +79,7 @@
           "to": "vbufferRt.color"
         },
         {
-          "from": "vbufferRt.depth",
+          "from": "tiledVbufferNee.depth",
           "to": "depth.texture"
         },
         {
@@ -93,6 +93,18 @@
         {
           "from": "color.texture",
           "to": "defaultVbuffer.color"
+        },
+        {
+          "from": "scene.scene",
+          "to": "tiledVbufferNee.scene"
+        },
+        {
+          "from": "camera.view",
+          "to": "tiledVbufferNee.view"
+        },
+        {
+          "from": "color.texture",
+          "to": "tiledVbufferNee.color"
         }
       ],
       "id": "Default",
@@ -143,6 +155,11 @@
             "node": "defaultVbuffer",
             "x": 754,
             "y": 430
+          },
+          {
+            "node": "tiledVbufferNee",
+            "x": 997,
+            "y": 412
           }
         ]
       },
@@ -237,6 +254,12 @@
           "asset": "raytracing.lurender.json",
           "configuration": "DefaultVbuffer",
           "id": "defaultVbuffer",
+          "kind": "Subgraph"
+        },
+        {
+          "asset": "raytracing.lurender.json",
+          "configuration": "tiledVbufferNee",
+          "id": "tiledVbufferNee",
           "kind": "Subgraph"
         }
       ],

@@ -3,7 +3,7 @@
     "artifacts": 64,
     "configurations": 8,
     "pipelines": 16,
-    "programs": 18
+    "programs": 23
   },
   "id": "RendererStaticBuild",
   "profiles": [
@@ -172,6 +172,51 @@
       "output": "Radiance",
       "source": "shader_Scene_Shader_raytracingpipeline_vbuffer_shader.slang",
       "stage": "ray_generation"
+    },
+    {
+      "bindings": [],
+      "function": "GenerateRay",
+      "id": "TiledNeeTiles",
+      "input": "RayLaunch",
+      "output": "Radiance",
+      "source": "tiled_vbuffer_nee/main_shaders/tiles.slang",
+      "stage": "ray_generation"
+    },
+    {
+      "bindings": [],
+      "function": "GenerateRay",
+      "id": "TiledNeePrefix",
+      "input": "RayLaunch",
+      "output": "Radiance",
+      "source": "tiled_vbuffer_nee/main_shaders/prefix.slang",
+      "stage": "ray_generation"
+    },
+    {
+      "bindings": [],
+      "function": "GenerateRay",
+      "id": "TiledNeeShade",
+      "input": "RayLaunch",
+      "output": "Radiance",
+      "source": "tiled_vbuffer_nee/main_shaders/shade.slang",
+      "stage": "ray_generation"
+    },
+    {
+      "bindings": [],
+      "function": "ShadeMiss",
+      "id": "TiledNeeMiss",
+      "input": "Ray",
+      "output": "ScenePayload",
+      "source": "tiled_vbuffer_nee/main_shaders/miss.slang",
+      "stage": "miss"
+    },
+    {
+      "bindings": [],
+      "function": "ShadeClosest",
+      "id": "TiledNeeClosest",
+      "input": "SurfaceHit",
+      "output": "ScenePayload",
+      "source": "tiled_vbuffer_nee/main_shaders/closest.slang",
+      "stage": "closest_hit"
     }
   ],
   "schemas": [
