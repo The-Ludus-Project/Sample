@@ -5,6 +5,7 @@ name: Ludus SDK snapshot
 # stand in for them. A manual run can attach them to a prerelease of this
 # repository; set the repository variables from that run's job summary:
 # LUDUS_RELEASE_SDK_URL_<PLATFORM> and LUDUS_RELEASE_SDK_SHA256_<PLATFORM>.
+# macos-x64 is absent: hosted Intel runners have no prebuilt LLVM 23.
 on:
   # Changes to this workflow build the archives as run artifacts, never a release.
   pull_request:
@@ -50,10 +51,6 @@ jobs:
             runner: macos-15
             preset: macos-clang-release
             triple: arm64-apple-darwin
-          - platform: macos-x64
-            runner: macos-15-intel
-            preset: macos-clang-release
-            triple: x86_64-apple-darwin
     name: Build ${{ matrix.platform }} Release SDK
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 240
