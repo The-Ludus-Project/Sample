@@ -15,7 +15,7 @@ jobs:
   # Without a hosted Release SDK there is nothing to build against. Report that
   # on a short job instead of provisioning the toolchain or failing every push.
   sdk-not-configured:
-    if: (vars.LUDUS_RELEASE_SDK_URL_LINUX_X64 == '' && vars.LUDUS_RELEASE_SDK_SHA256_LINUX_X64 == '') || (vars.LUDUS_RELEASE_SDK_URL_MACOS_ARM64 == '' && vars.LUDUS_RELEASE_SDK_SHA256_MACOS_ARM64 == '') || (vars.LUDUS_RELEASE_SDK_URL_MACOS_X64 == '' && vars.LUDUS_RELEASE_SDK_SHA256_MACOS_X64 == '')
+    if: (vars.LUDUS_RELEASE_SDK_URL_LINUX_X64 == '' && vars.LUDUS_RELEASE_SDK_SHA256_LINUX_X64 == '') || (vars.LUDUS_RELEASE_SDK_URL_MACOS_ARM64 == '' && vars.LUDUS_RELEASE_SDK_SHA256_MACOS_ARM64 == '')
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -25,9 +25,6 @@ jobs:
       - name: Report missing macos-arm64 SDK configuration
         if: vars.LUDUS_RELEASE_SDK_URL_MACOS_ARM64 == '' && vars.LUDUS_RELEASE_SDK_SHA256_MACOS_ARM64 == ''
         run: echo "::notice title=Ludus SDK not configured::Set repository variables LUDUS_RELEASE_SDK_URL_MACOS_ARM64 and LUDUS_RELEASE_SDK_SHA256_MACOS_ARM64 to build and test on macos-arm64."
-      - name: Report missing macos-x64 SDK configuration
-        if: vars.LUDUS_RELEASE_SDK_URL_MACOS_X64 == '' && vars.LUDUS_RELEASE_SDK_SHA256_MACOS_X64 == ''
-        run: echo "::notice title=Ludus SDK not configured::Set repository variables LUDUS_RELEASE_SDK_URL_MACOS_X64 and LUDUS_RELEASE_SDK_SHA256_MACOS_X64 to build and test on macos-x64."
   build-and-test-linux-x64:
     if: vars.LUDUS_RELEASE_SDK_URL_LINUX_X64 != '' || vars.LUDUS_RELEASE_SDK_SHA256_LINUX_X64 != ''
     runs-on: ubuntu-24.04
@@ -123,64 +120,6 @@ jobs:
           url, expected = os.environ['SDK_URL'], os.environ['SDK_SHA256']
           if not url.startswith('https://') or not re.fullmatch('[a-f0-9]{64}', expected):
               raise SystemExit('Set both LUDUS_RELEASE_SDK_URL_MACOS_ARM64 (HTTPS) and LUDUS_RELEASE_SDK_SHA256_MACOS_ARM64 (lowercase SHA-256)')
-          digest, total = hashlib.sha256(), 0
-          path = os.environ['RUNNER_TEMP'] + '/ludus-release-sdk.tar'
-          with urllib.request.urlopen(url, timeout=30) as source, open(path, 'wb') as output:
-              if not source.geturl().startswith('https://'):
-                  raise SystemExit('SDK redirect outside HTTPS')
-              while block := source.read(1024 * 1024):
-                  total += len(block)
-                  if total > 4 * 1024 * 1024 * 1024:
-                      raise SystemExit('SDK download exceeds limit')
-                  digest.update(block)
-                  output.write(block)
-          if digest.hexdigest() != expected:
-              raise SystemExit('SDK archive digest mismatch')
-          # Leave stderr on the job log so an install failure shows its diagnostic.
-          result = subprocess.run(['ludus', '--json', 'sdk', 'install', '--archive', path, '--digest', expected], text=True, stdout=subprocess.PIPE, check=True)
-          prefix = json.loads(result.stdout)['installed']['prefix']
-          with open(os.environ['GITHUB_ENV'], 'a') as output:
-              output.write('LUDUS_RELEASE_SDK_PREFIX=' + prefix + '\n')
-          PYTHON
-      - name: Build macos-clang-release
-        run: ludus project build . --profile macos-clang-release --sdk "$LUDUS_RELEASE_SDK_PREFIX"
-      - name: Run tests
-        run: ctest --test-dir out/build/macos-clang-release --output-on-failure --timeout 300
-  build-and-test-macos-x64:
-    if: vars.LUDUS_RELEASE_SDK_URL_MACOS_X64 != '' || vars.LUDUS_RELEASE_SDK_SHA256_MACOS_X64 != ''
-    runs-on: macos-15-intel
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1 (Node 24)
-        with:
-          persist-credentials: false
-      - name: Install build prerequisites
-        run: |
-          # An SDK accepts only the exact compiler version it was built with, and
-          # runner images can carry stale formula metadata; install the current bottle.
-          brew update --quiet
-          brew install python@3.12 llvm@23
-          python_bin="$(brew --prefix python@3.12)/bin/python3.12"
-          llvm_prefix="$(brew --prefix llvm@23)"
-          "$python_bin" -m venv /tmp/ludus-ci-tools
-          echo "$llvm_prefix/bin" >> "$GITHUB_PATH"
-          echo 'MACOSX_DEPLOYMENT_TARGET=14.0' >> "$GITHUB_ENV"
-          echo "CXXFLAGS=-stdlib=libc++ -nostdinc++ -isystem $llvm_prefix/include/c++/v1" >> "$GITHUB_ENV"
-          ref=$(cat config/ludus-tools-revision.txt)
-          [[ "$ref" =~ ^[0-9a-f]{40}$ ]]
-          /tmp/ludus-ci-tools/bin/pip install cmake==3.29.6 ninja==1.11.1.3
-          /tmp/ludus-ci-tools/bin/pip install "ludus-tools @ git+https://github.com/The-Ludus-Project/Ludus.git@$ref#subdirectory=scripts/python"
-          echo /tmp/ludus-ci-tools/bin >> "$GITHUB_PATH"
-      - name: Acquire digest-pinned Release SDK
-        env:
-          SDK_URL: ${{ vars.LUDUS_RELEASE_SDK_URL_MACOS_X64 }}
-          SDK_SHA256: ${{ vars.LUDUS_RELEASE_SDK_SHA256_MACOS_X64 }}
-        run: |
-          python3 - <<'PYTHON'
-          import hashlib, json, os, re, subprocess, urllib.request
-          url, expected = os.environ['SDK_URL'], os.environ['SDK_SHA256']
-          if not url.startswith('https://') or not re.fullmatch('[a-f0-9]{64}', expected):
-              raise SystemExit('Set both LUDUS_RELEASE_SDK_URL_MACOS_X64 (HTTPS) and LUDUS_RELEASE_SDK_SHA256_MACOS_X64 (lowercase SHA-256)')
           digest, total = hashlib.sha256(), 0
           path = os.environ['RUNNER_TEMP'] + '/ludus-release-sdk.tar'
           with urllib.request.urlopen(url, timeout=30) as source, open(path, 'wb') as output:
