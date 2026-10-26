@@ -39,7 +39,7 @@
           "to": "subgraph.depth"
         },
         {
-          "from": "tiledVbufferNee.color",
+          "from": "restirDi.color",
           "to": "tonemap.color"
         },
         {
@@ -79,7 +79,7 @@
           "to": "vbufferRt.color"
         },
         {
-          "from": "tiledVbufferNee.depth",
+          "from": "vbufferRt.depth",
           "to": "depth.texture"
         },
         {
@@ -105,6 +105,18 @@
         {
           "from": "color.texture",
           "to": "tiledVbufferNee.color"
+        },
+        {
+          "from": "scene.scene",
+          "to": "computeRt.scene"
+        },
+        {
+          "from": "camera.view",
+          "to": "computeRt.view"
+        },
+        {
+          "from": "color.texture",
+          "to": "computeRt.color"
         }
       ],
       "id": "Default",
@@ -143,8 +155,8 @@
           },
           {
             "node": "vbufferRt",
-            "x": 754,
-            "y": 305
+            "x": 752,
+            "y": 264
           },
           {
             "node": "depth",
@@ -160,6 +172,11 @@
             "node": "tiledVbufferNee",
             "x": 997,
             "y": 412
+          },
+          {
+            "node": "computeRt",
+            "x": 996,
+            "y": 578
           }
         ]
       },
@@ -246,6 +263,7 @@
           "kind": "Subgraph"
         },
         {
+          "enabled": false,
           "id": "depth",
           "kind": "Export",
           "type": "DepthTexture"
@@ -260,6 +278,12 @@
           "asset": "raytracing.lurender.json",
           "configuration": "tiledVbufferNee",
           "id": "tiledVbufferNee",
+          "kind": "Subgraph"
+        },
+        {
+          "asset": "raytracing.lurender.json",
+          "configuration": "ComputeRt",
+          "id": "computeRt",
           "kind": "Subgraph"
         }
       ],
