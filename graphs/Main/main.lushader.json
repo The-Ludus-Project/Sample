@@ -3,7 +3,7 @@
     "artifacts": 64,
     "configurations": 8,
     "pipelines": 16,
-    "programs": 23
+    "programs": 26
   },
   "id": "RendererStaticBuild",
   "profiles": [
@@ -217,6 +217,33 @@
       "output": "ScenePayload",
       "source": "tiled_vbuffer_nee/main_shaders/closest.slang",
       "stage": "closest_hit"
+    },
+    {
+      "bindings": [],
+      "function": "TracePixel",
+      "id": "SimpleComputeRayTrace",
+      "input": "RayLaunch",
+      "output": "Radiance",
+      "source": "simple_compute_ray_tracing/main_shaders/trace.slang",
+      "stage": "compute"
+    },
+    {
+      "bindings": [],
+      "function": "TracePrimaryHit",
+      "id": "ComputeRayPrimary",
+      "input": "RayLaunch",
+      "output": "Radiance",
+      "source": "compute_ray_tracing/main_shaders/primary.slang",
+      "stage": "compute"
+    },
+    {
+      "bindings": [],
+      "function": "ShadeRecordedHit",
+      "id": "ComputeRayShade",
+      "input": "RayLaunch",
+      "output": "Radiance",
+      "source": "compute_ray_tracing/main_shaders/shade.slang",
+      "stage": "compute"
     }
   ],
   "schemas": [
